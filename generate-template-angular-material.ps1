@@ -33,15 +33,21 @@ try {
 		elseif ($PSVersionTable.PSEdition -eq 'Desktop') {
 			Write-Host "The operating system is Windows."
 			if ($installNode -eq "y") {
+
 				# Check if Chocolatey is installed
 				if (-Not (Get-Command choco -ErrorAction SilentlyContinue)) {
-					# Install Chocolatey
-					Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+					Write-Host "Installing Chocolatey..."
+					Set-ExecutionPolicy Bypass -Scope Process -Force
+					[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; 
+					iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 				}
-
+				
 				Write-Host "Installing Node.js using Chocolatey..."
 				# Install Node.js using Chocolatey
-				choco install nodejs-lts -y
+				choco install nodejs-lts
+				
+				node --version
+				npm --version
 
 				# Verify the installation
 				if (Get-Command node -ErrorAction SilentlyContinue) {
@@ -67,7 +73,14 @@ try {
 		$installAngularCLI = Read-Host -Prompt "Angular CLI is not installed. Do you want to install it? (y/n)"
 		if ($installAngularCLI -eq "y") {
 			Write-Host "Installing Angular CLI globally..."
-			sudo npm install -g @angular/cli
+			
+			if ($PSVersionTable.PSEdition -eq 'Core') {
+				sudo npm install -g @angular/cli
+			} elseif ($PSVersionTable.PSEdition -eq 'Desktop') {
+				npm install -g @angular/cli
+			} else {
+				Write-Host "Unknown PowerShell edition."
+			}
 
 			# Verify the installation
 			if (Get-Command ng -ErrorAction SilentlyContinue) {
@@ -169,7 +182,7 @@ try {
 		} else {
 			Write-Host "Visual Studio Code is not installed."
 			Write-Host "Installing Visual Studio Code using Chocolatey..."
-			sudo choco install vscode -y
+			choco install vscode -y
 			code .
 		}
 	} else {
